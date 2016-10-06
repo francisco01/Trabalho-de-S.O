@@ -4,7 +4,6 @@
 typedef struct{
 	int nome;
 	int tmp_exec;
-	int deadline;
 	int tmp_chegada;
 	int tmp_final;
 	int tmp_parcial;
@@ -23,23 +22,69 @@ typedef struct{
 
 void flv (tp_lista *l);
 void inserir_fim (tp_lista *l);
-void calcular_tmp_medio_FIFO (tp_lista l, int n);
+void calcular_tmp_medio_FIFO_SJF (tp_lista l, int n);
 void inserir_ordenado_SJF (tp_lista *l);
-void calcular_tmp_medio_RR(tp_lista l, int n);
+void calcular_tmp_medio_RR(tp_lista l, int n, int qntum);
+void liberar_nos (tp_lista *l);
 
 
 int main(){
 	
 	tp_lista l;
-	int i, n = 4;
-	flv (&l);
-	for (i = 0; i < n; i++){
-		//inserir_ordenado_SJF (&l);
-		inserir_fim (&l);
-		//system ("cls");
+	int i, n, qntum, opc = 1;
+	
+	while (opc != 0){
+		printf ("----------------MENU DE OPCOES--------------\n");
+		printf ("---------INFORME A OPCAO DESEJADA-----------\n");
+		printf ("1 - Algoritomo FIFO\n");
+		printf ("2 - ALgoritimo SJF\n");
+		printf ("3 - Algoritimo RR\n");
+		printf ("0 - Sair\n");
+		scanf ("%d", &opc);
+		system ("cls");
+	
+		switch (opc){
+			case 1:
+				flv (&l);
+				printf ("Informe a quantidade de processos\n");
+				scanf ("%d", &n);	
+				for (i = 0; i < n; i++){
+					inserir_fim (&l);
+					system ("cls");
+				}
+				calcular_tmp_medio_FIFO_SJF (l, n);	
+				liberar_nos (&l);		
+				break;
+			case 2:
+				flv (&l);
+				printf ("Informe a quantidade de processos\n");
+				scanf ("%d", &n);	
+				for (i = 0; i < n; i++){
+					inserir_ordenado_SJF (&l);
+					system ("cls");
+				}
+				calcular_tmp_medio_FIFO_SJF (l, n);	
+				liberar_nos (&l);
+				break;
+			case 3:
+				flv (&l);
+				printf ("Informe a quantidade de processos\n");
+				scanf ("%d", &n);
+				printf ("Informe a fatia de Quantum\n");
+				scanf ("%d", &qntum);	
+				for (i = 0; i < n; i++){
+					inserir_fim (&l);
+					system ("cls");
+				}
+				calcular_tmp_medio_RR(l, n, qntum);
+				liberar_nos (&l);
+				break;	
+			case 0:
+				break;	
+			default :
+				printf ("Valor invalido!\n");
+		}
 	}
-	//calcular_tmp_medio_FIFO (l, n);
-	calcular_tmp_medio_RR(l, n);
 	return 0;
 }
 
@@ -107,7 +152,7 @@ void inserir_ordenado_SJF (tp_lista *l){
 			
 
 }
-void calcular_tmp_medio_FIFO (tp_lista l, int n){
+void calcular_tmp_medio_FIFO_SJF (tp_lista l, int n){
 	int tmp_medio ,cont = 1, qtd_processo = n;
 	float soma = 0;
 	apont aux;
@@ -125,7 +170,7 @@ void calcular_tmp_medio_FIFO (tp_lista l, int n){
 			aux->item.tmp_final = aux->item.tmp_parcial - aux->item.tmp_chegada;
 			tmp_medio =  aux->item.tmp_parcial;
 		}
-		printf ("tmp corrido %d e nome do processo %d\n", aux->item.tmp_final, aux->item.nome);
+		//printf ("tmp corrido %d e nome do processo %d\n", aux->item.tmp_final, aux->item.nome);
 		soma += aux->item.tmp_final;
 		cont++;
 		aux = aux->prox;
@@ -134,15 +179,15 @@ void calcular_tmp_medio_FIFO (tp_lista l, int n){
 	}
 	printf ("Tempo medio e: %.2f\n", soma/qtd_processo);
 }
-void calcular_tmp_medio_RR(tp_lista l, int n){
-	int qntum = 2, tmp = 0, guard_exec, cont = 0, flag = 0, qtd_processo = n, m, tmpo_exec;
+void calcular_tmp_medio_RR(tp_lista l, int n, int qntum){
+	int tmp = 0, guard_exec, cont = 0, flag = 0, qtd_processo = n, m, tmpo_exec;
 	float soma = 0;
 	apont aux, aux2, aux3;
 	aux = l.primeiro->prox;
 	while (n > 0){
 		m = n-1;
 		tmpo_exec = aux->item.tmp_exec;
-		printf ("nome do processo %d\n", aux->item.nome);
+		//printf ("nome do processo %d\n", aux->item.nome);
 		if (tmpo_exec > qntum){
 			aux->item.tmp_exec = aux->item.tmp_exec - qntum;
 			tmp += qntum+1;
@@ -160,7 +205,7 @@ void calcular_tmp_medio_RR(tp_lista l, int n){
 			n--;
 			tmp += guard_exec;
 			aux->item.tmp_parcial = tmp;
-			printf ("tmp corrido %d e nome do processo %d\n", aux->item.tmp_parcial, aux->item.nome);
+			//printf ("tmp corrido %d e nome do processo %d\n", aux->item.tmp_parcial, aux->item.nome);
 			aux->item.tmp_final = aux->item.tmp_parcial - aux->item.tmp_chegada;
 		}
 		aux2 = aux;
@@ -218,12 +263,22 @@ void calcular_tmp_medio_RR(tp_lista l, int n){
 	n = qtd_processo;
 	while (n > 0){
 		soma += aux->item.tmp_final;
-		printf ("nome %d\n", aux->item.nome);
+		printf ("nome %d ", aux->item.nome);
 		printf ("tempo final %d\n", aux->item.tmp_final);
 		aux = aux->prox;
 		n--;
 	}
 	printf ("Tempo medio e: %.2f\n", soma/qtd_processo);
 
-
+}
+void liberar_nos (tp_lista *l){
+	apont aux, tmp;
+	aux = l->primeiro;
+	while (aux != l->ultimo){
+		tmp = aux;
+		aux = aux->prox;
+		free (tmp);
+	}
+	free (aux);
+	
 }
